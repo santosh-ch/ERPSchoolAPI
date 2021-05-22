@@ -30,7 +30,7 @@ namespace ERPSchoolAPI.Controllers
         }
 
         [Route("{id}")]
-        public IActionResult GetStaffById(int id =0)
+        public ActionResult<Staff> GetStaffById(int id =0)
         {
             if(id == 0)
             {
@@ -42,6 +42,25 @@ namespace ERPSchoolAPI.Controllers
                 return NotFound();
             }
             return Ok(queriedStaff);
+        }
+
+        [HttpPost("submit")]
+        public IActionResult SubmitStaff(Staff staff)
+        {
+            try
+            {
+                if (staff.Name == string.Empty)
+                {
+                    return BadRequest();
+                }
+                int id = this.staff.Max(x => x.Id) + 1;
+                this.staff.Add(new Staff() { Id = id, Name = staff.Name, Subject = staff.Subject });
+                return Accepted();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { error = $"Exception in API {e.Message}" });
+            }
         }
     }
 }
