@@ -45,16 +45,35 @@ namespace ERPSchoolAPI.Controllers
         }
 
         [HttpPost("submit")]
-        public IActionResult SubmitStaff(Staff staff)
+        public IActionResult SubmitStaff(int id,[FromForm]string name,[FromQuery]string subject)
         {
             try
-            {
-                if (staff.Name == string.Empty)
+                {
+                if (name==null||name == string.Empty)
                 {
                     return BadRequest();
                 }
-                int id = this.staff.Max(x => x.Id) + 1;
-                this.staff.Add(new Staff() { Id = id, Name = staff.Name, Subject = staff.Subject });
+                int idNew = this.staff.Count;
+                this.staff.Add(new Staff() { Id = idNew, Name = name, Subject = subject });
+                return Accepted();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { error = $"Exception in API {e.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Submit([FromBody]Staff staff, [FromHeader] string subject)
+        {
+            try
+            {
+                if (staff.Name == null || staff.Name == string.Empty)
+                {
+                    return BadRequest();
+                }
+                int idNew = this.staff.Count;
+                this.staff.Add(new Staff() { Id = idNew, Name = staff.Name, Subject = subject != null?subject:staff.Subject });
                 return Accepted();
             }
             catch (Exception e)

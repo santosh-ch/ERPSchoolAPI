@@ -1,4 +1,5 @@
 ﻿using ERPSchoolAPI.Models;
+using ERPSchoolAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,12 +12,13 @@ namespace ERPSchoolAPI.Controllers
     [Route("api/students")]
     public class StudentController : ControllerBase
     {
-        List<Student> students = new List<Student>();
-        public StudentController()
+        private IStudentsRepository _studentsRepository;
+        private IStudentsRepository _studentsRepository1;
+
+        public StudentController(IStudentsRepository studentsRepository,IStudentsRepository studentsRepository1)
         {
-            students.Add(new Student() { Id = 1, Name = "Ramesh", Age = 7 });
-            students.Add(new Student() { Id = 2, Name = "Suresh", Age = 10 });
-            students.Add(new Student() { Id = 3, Name = "Mahesh", Age = 8 });
+            _studentsRepository = studentsRepository;
+            _studentsRepository1 = studentsRepository1;
         }
 
         //[Route("{spart:int:min(5001)}")]
@@ -34,24 +36,44 @@ namespace ERPSchoolAPI.Controllers
         [Route("{spart:minlength(6):alpha}")]
         public Student GetStudentByName(string spart)
         {
-            return this.students.Where(x => x.Name.ToLower() == spart.ToLower()).FirstOrDefault();
+            return this._studentsRepository.GetStudents().Where(x => x.Name.ToLower() == spart.ToLower()).FirstOrDefault();
         }
         [Route("{spart:maxlength(6):alpha}")]
         public List<Student> GetStudentByNameSmall(string spart)
         {
-            return this.students.Where(x => x.Name.ToLower().Contains(spart.ToLower())).ToList();
+            return this._studentsRepository.GetStudents().Where(x => x.Name.ToLower().Contains(spart.ToLower())).ToList();
         }
 
         [Route("{id}")]
-        public List<Student> GetStudents([FromRoute] int id = 0, [FromQuery] string name = "", [FromQuery] int age=0)
+        public List<Student> GetStudents([FromQuery] int id = 0, [FromQuery] string name = "", [FromQuery] int age=0)
         {
             if(id != 0 || name != string.Empty || age !=0)
-                return this.students.Where(
+                return this._studentsRepository.GetStudents().Where(
                         x => (id !=0 && x.Id == id)
 
                                 || (name != string.Empty && x.Name.ToLower() == name.ToLower()) ||
                                 (age != 0 && x.Age == age)).ToList();
-            return this.students;
+            return this._studentsRepository.GetStudents();
+        }
+
+        [HttpPost]
+        public IActionResult SubmitStudent(Student student)
+        {
+            try
+            {
+                this._studentsRepository.AddStudent(student);
+                return Ok(this._studentsRepository1.GetStudents());
+            }
+            catch
+            {
+               return StatusCode(500);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetAllStudents([FromServices] IStudentsRepository studentsRepository)
+        {
+            return Ok(studentsRepository.GetStudents());
         }
 
     }

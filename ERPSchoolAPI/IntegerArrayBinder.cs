@@ -14,7 +14,7 @@ namespace ERPSchoolAPI
             var isQueryParamFound = data.TryGetValue("ids", out var idString);
             if (isQueryParamFound)
             {
-                List<int> ids = idString.ToString().Split(',').Select(x=>Convert.ToInt32(x)).ToList();
+                int[] ids = idString.ToString().Split(',').Select(x=>Convert.ToInt32(x)).ToArray();
                 bindingContext.Result = ModelBindingResult.Success(ids);
             }
             return Task.CompletedTask;
